@@ -43,7 +43,7 @@ function App() {
           <ThemeToggle theme={theme} toggleTheme={toggleTheme} />
         </div>
       </header>
-      <main class="pt-16 pb-8 min-h-screen flex flex-col">
+      <main class="pt-16 pb-8 h-screen flex flex-col justify-center items-center">
         <ChatInterface />
       </main>
     </div>

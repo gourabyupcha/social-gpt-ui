@@ -4,10 +4,28 @@ import ChatMessage from './ChatMessage'
 import SuggestionPrompts from './SuggestionPrompts'
 import { generateAIResponse } from '../utils/aiUtils'
 
+
+const data = {
+  status: true,
+  data: {
+    "sql_query": "(SELECT text FROM tweets WHERE text LIKE '%Fifa%' ORDER BY timestamp DESC LIMIT 5);",
+    "data": [],
+    "generated_post": "\"Who's ready for a FIFA tournament? Let's set up a league and show off our skills! Who's in? #FIFA #Gaming #TournamentTime\"",
+    "post_result": {
+      "status": "success",
+      "data": {
+        "message": "Tweet posted",
+        "tweet_id": 3233852014
+      }
+    }
+  }
+}
+
 const ChatInterface = () => {
   const [messages, setMessages] = createSignal([])
   const [isTyping, setIsTyping] = createSignal(false)
   const [showSuggestions, setShowSuggestions] = createSignal(true)
+  const [response, setResponse] = createSignal(null)
   const messagesEndRef = { current: null }
 
   // Scroll to bottom when messages change
@@ -26,21 +44,21 @@ const ChatInterface = () => {
 
   const handleSendMessage = async (prompt) => {
     if (!prompt.trim()) return
-    
+
     // Add user message
     setMessages([...messages(), { id: Date.now(), role: 'user', content: prompt }])
-    
+
     // Hide suggestions when user sends a message
     setShowSuggestions(false)
-    
+
     // Simulate AI typing
     setIsTyping(true)
-    
+
     // Simulate API call delay
     setTimeout(async () => {
       const response = await generateAIResponse(prompt)
       setIsTyping(false)
-      
+
       // Add AI response
       setMessages([...messages(), { id: Date.now(), role: 'assistant', content: response }])
     }, 1500)
@@ -51,7 +69,7 @@ const ChatInterface = () => {
   }
 
   return (
-    <div class="max-w-4xl w-full mx-auto px-4 flex flex-col h-full">
+    <div class="max-w-4xl w-full px-4 flex flex-col">
       <div class="flex-grow overflow-y-auto py-4 space-y-6">
         {messages().length === 0 && !isTyping() ? (
           <div class="flex flex-col items-center justify-center h-[60vh] text-center">
@@ -91,12 +109,44 @@ const ChatInterface = () => {
         )}
       </div>
 
-      {showSuggestions() && messages().length === 0 && (
+      {/* {showSuggestions() && messages().length === 0 && (
         <SuggestionPrompts onSuggestionClick={handleSuggestionClick} />
-      )}
+      )} */}
+
+      <Show when={response() && response()?.status}>
+        <div class="w-full bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 space-y-4 border border-gray-200 dark:border-gray-700">
+          <div class="flex justify-between">
+            <div class="text-green-600 dark:text-green-400 font-semibold text-sm">
+              ✅{response()?.data.post_result.data.message}
+            </div>
+            <div class="text-sm text-gray-600 dark:text-gray-400">
+              🆔 <span class="font-medium">Tweet ID:</span> {response()?.data.post_result.data.tweet_id}
+            </div>
+          </div>
+
+          <div class="text-gray-900 dark:text-white text-base whitespace-pre-line flex gap-2">
+            <p class='text-lg'>Prompt:</p>{response()?.prompt}
+          </div>
+
+          <div class="text-gray-900 dark:text-white text-base whitespace-pre-line flex gap-2">
+            Post: {response()?.data.generated_post}
+          </div>
+        </div>
+      </Show>
+
+      <Show when={response() && !response()?.status}>
+        <div class="max-w-xl mx-auto bg-red-50 dark:bg-red-900 text-red-800 dark:text-red-100 border border-red-200 dark:border-red-700 rounded-xl shadow-sm p-4 flex items-start space-x-3">
+          <svg class="w-5 h-5 mt-0.5 text-red-600 dark:text-red-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-1.414 1.414M5.636 18.364l1.414-1.414M6.343 6.343l1.414 1.414M17.657 17.657l-1.414-1.414M12 9v3m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <div class="text-sm font-medium">
+            <strong>Error:</strong> Something went wrong. Please try again.
+          </div>
+        </div>
+      </Show>
 
       <div class="sticky bottom-0 bg-gray-50 dark:bg-gray-900 pt-2 pb-4 transition-colors duration-200">
-        <ChatInput onSendMessage={handleSendMessage} />
+        <ChatInput onSendMessage={handleSendMessage} setResponse={setResponse} />
       </div>
     </div>
   )
