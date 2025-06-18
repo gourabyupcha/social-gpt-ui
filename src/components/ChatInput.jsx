@@ -21,6 +21,7 @@ const ChatInput = (props) => {
         method: "POST",
         credentials: "include",
         headers: {
+          "x-api-key": "admin_282f5e01a02938b85d956f525da92166",
           "Content-type": "application/json"
         },
         body: JSON.stringify(
